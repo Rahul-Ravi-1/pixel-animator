@@ -1,0 +1,41 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.app-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar button {
+  width: 90px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+#canvas {
+  display: block;
+  border: 1px solid #222;
+  background: #fff;
+  image-rendering: pixelated;
+}
+
+.pixel {
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.0);
+}
