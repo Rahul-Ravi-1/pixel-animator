@@ -22,6 +22,18 @@ body {
   gap: 8px;
 }
 
+.animation-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.animation-bar button {
+  width: 90px;
+  padding: 8px;
+  cursor: pointer;
+}
+
 .sidebar button {
   width: 90px;
   padding: 8px;
