@@ -7,7 +7,64 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 100vh;
   font-family: Arial, sans-serif;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.animation-frame-container {
+  width: min(900px, 90vw);
+  min-height: 84px;
+  padding: 8px;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: #f8f8f8;
+}
+
+.frame-timeline {
+  display: flex;
+  width: max-content;
+  min-height: 100%;
+  align-items: center;
+  gap: 8px;
+}
+
+.frame-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 0 0 84px;
+  height: 70px;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.frame-thumb-canvas {
+  width: 52px;
+  height: 52px;
+  border: 1px solid #bbb;
+  image-rendering: pixelated;
+}
+
+.frame-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .app-layout {
