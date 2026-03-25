@@ -7,6 +7,16 @@
     return Array.isArray(frame) && frame.length > 0 && Array.isArray(frame[0]);
   }
 
+
+/**
+ * This is like a controller/constructor for handling animation logic
+ * It's cool because when you declare an instance of this function
+ * You can define the callbacks for the animation logic and call them as needed
+ * onApplyFrame for example literally calls to set the frame on the canvas since frames is a variable here
+ * 
+ * Ultimately this is for separation of concerns and making the code more modular and easier to maintain
+ * You can see how this is used in app.js with the animationController instance
+ */
   window.createAnimationController = function createAnimationController({
     onApplyFrame,
     onPlayingChange,
@@ -96,7 +106,10 @@
     function isPlaying() {
       return playbackTimerId !== null;
     }
-
+/**
+ * This is like a public API for the animation controller this is much more straight forward
+ * and easier to understand than the constructor
+ */
     return {
       togglePlayback,
       addFrame,
