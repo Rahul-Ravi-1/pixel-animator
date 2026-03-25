@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="animation.js" defer></script>
+  <script src="grid-model.js" defer></script>
+  <script src="tool.js" defer></script>
+  <script src="timeline-view.js" defer></script>
+  <script src="canvas-renderer.js" defer></script>
+  <script src="input-controller.js" defer></script>
+  <script src="app.js" defer></script>
+  <title>Pixel Animator</title>
+</head>
+<body>
+  <div class="page">
+    <div class="animation-frame-container">
+      <div id="frameTimeline" class="frame-timeline"></div>
+    </div>
+
+    <div class="app-layout">
+      <div class="sidebar">
+        <button data-mode="default">Color</button>
+        <button data-mode="random">Random</button>
+        <button data-mode="erase">Erase</button>
+        <button id="clearBtn" type="button">Clear</button>
+        <button id="setSizeBtn" type="button">Set Size</button>
+      </div>
+      <canvas id="canvas"></canvas>
+      <div class="animation-bar">
+        <button id="Play" type="button">Play</button>
+        <button id="AddFrame" type="button">Add Frame</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
