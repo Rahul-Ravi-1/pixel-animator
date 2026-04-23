@@ -8,7 +8,7 @@ export function createAnimationController({
   onApplyFrame,
   onPlayingChange,
   onFrameCountChange,
-  frameDelayMs = 200,
+  frameDelayMs = 120,
 }) {
   let frames = [];
   let currentFrameIndex = 0;

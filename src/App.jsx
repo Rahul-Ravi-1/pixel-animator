@@ -197,6 +197,10 @@ export default function App() {
 
   function handleAddFrame() {
     animationControllerRef.current?.addFrame(gridRef.current);
+    const next = createGrid(sizeRef.current, CANVAS_BASE_COLOR);
+    gridRef.current = next;
+    setGrid(next);
+    rendererRef.current?.redraw(next);
   }
 
   function handleTogglePlay() {
