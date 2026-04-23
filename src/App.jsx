@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import BrushColorControls from "./components/BrushColorControls";
+import DrawToolControls from "./components/DrawToolControls";
 import { createAnimationController } from "./lib/animationController";
+import { createCanvasInputController } from "./lib/canvasInputController";
 import { createCanvasRenderer } from "./lib/canvasRenderer";
 import { cloneGrid, createGrid, setPixel } from "./lib/gridModel";
 
@@ -7,10 +10,7 @@ const CANVAS_BASE_COLOR = "#ffffff";
 const MAX_CANVAS_SIZE = 512;
 const FRAME_THUMBNAIL_SIZE = 52;
 
-function generateRandomRgbColor() {
-  const r = Math.floor(Math.random() * 256);
-  const g = Math.floor(Math.random() * 256);
-  const b = Math.floor(Math.random() * 256);
+function brushRgbToCss({ r, g, b }) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
@@ -43,12 +43,12 @@ export default function App() {
   const [frameCount, setFrameCount] = useState(0);
   const [frames, setFrames] = useState([]);
   const [drawMode, setDrawMode] = useState("draw");
-  const [colorMode, setColorMode] = useState("current");
+  const [brushRgb, setBrushRgb] = useState({ r: 0, g: 0, b: 0 });
 
   const canvasRef = useRef(null);
   const rendererRef = useRef(null);
   const animationControllerRef = useRef(null);
-  const mouseDownRef = useRef(false);
+  const applyPaintRef = useRef(() => {});
   const sizeRef = useRef(size);
   const gridRef = useRef(grid);
 
@@ -77,6 +77,20 @@ export default function App() {
     });
     rendererRef.current.resizeForGrid(sizeRef.current);
     rendererRef.current.redraw(gridRef.current);
+
+    const inputController = createCanvasInputController({
+      getGridSize: () => sizeRef.current,
+      onInput(payload) {
+        if (!payload.isDragging) {
+          return;
+        }
+        applyPaintRef.current(payload.x, payload.y);
+      },
+    });
+    inputController.attach(canvas);
+    return () => {
+      inputController.detach();
+    };
   }, []);
 
   useEffect(() => {
@@ -110,19 +124,15 @@ export default function App() {
     };
   }, []);
 
-  const isColorMode = drawMode === "draw" && colorMode === "current";
-  const isRandomMode = drawMode === "draw" && colorMode === "random";
+  const isDrawMode = drawMode === "draw";
   const isEraseMode = drawMode === "erase";
 
   const resolvePaintColor = useMemo(() => {
     if (drawMode === "erase") {
       return () => CANVAS_BASE_COLOR;
     }
-    if (colorMode === "random") {
-      return () => generateRandomRgbColor();
-    }
-    return () => "black";
-  }, [drawMode, colorMode]);
+    return () => brushRgbToCss(brushRgb);
+  }, [drawMode, brushRgb]);
 
   function applyPaint(x, y) {
     const color = resolvePaintColor();
@@ -137,40 +147,7 @@ export default function App() {
     rendererRef.current?.drawPixel(x, y, color, sizeRef.current);
   }
 
-  function getGridCoords(event) {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return { x: -1, y: -1 };
-    }
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor(((event.clientX - rect.left) / rect.width) * sizeRef.current);
-    const y = Math.floor(((event.clientY - rect.top) / rect.height) * sizeRef.current);
-    return { x, y };
-  }
-
-  function handleMouseDown(event) {
-    mouseDownRef.current = true;
-    const { x, y } = getGridCoords(event);
-    applyPaint(x, y);
-  }
-
-  function handleMouseMove(event) {
-    if (!mouseDownRef.current) {
-      return;
-    }
-    const { x, y } = getGridCoords(event);
-    applyPaint(x, y);
-  }
-
-  useEffect(() => {
-    function handleMouseUp() {
-      mouseDownRef.current = false;
-    }
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
+  applyPaintRef.current = applyPaint;
 
   function handleClear() {
     const clearedGrid = createGrid(sizeRef.current, CANVAS_BASE_COLOR);
@@ -207,6 +184,14 @@ export default function App() {
     animationControllerRef.current?.togglePlayback();
   }
 
+  function handleSelectDrawBrush() {
+    setDrawMode("draw");
+  }
+
+  function handleToggleErase() {
+    setDrawMode((mode) => (mode === "erase" ? "draw" : "erase"));
+  }
+
   return (
     <div className="page">
       <div className="animation-frame-container">
@@ -231,20 +216,18 @@ export default function App() {
 
       <div className="app-layout">
         <div className="sidebar">
-          <button type="button" onClick={() => { setDrawMode("draw"); setColorMode("current"); }}>
-            {isColorMode ? "Color ✓" : "Color"}
-          </button>
-          <button type="button" onClick={() => { setDrawMode("draw"); setColorMode((mode) => (mode === "random" ? "current" : "random")); }}>
-            {isRandomMode ? "Random ✓" : "Random"}
-          </button>
-          <button type="button" onClick={() => { setColorMode("current"); setDrawMode((mode) => (mode === "erase" ? "draw" : "erase")); }}>
-            {isEraseMode ? "Erase ✓" : "Erase"}
-          </button>
+          <BrushColorControls brushRgb={brushRgb} setBrushRgb={setBrushRgb} />
+          <DrawToolControls
+            isDrawActive={isDrawMode}
+            isErase={isEraseMode}
+            onDrawBrush={handleSelectDrawBrush}
+            onErase={handleToggleErase}
+          />
           <button type="button" onClick={handleClear}>Clear</button>
           <button type="button" onClick={handleSetSize}>Set Size</button>
         </div>
 
-        <canvas id="canvas" ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} />
+        <canvas id="canvas" ref={canvasRef} />
 
         <div className="animation-bar">
           <button type="button" onClick={handleTogglePlay}>{isPlaying ? "Stop" : "Play"}</button>
