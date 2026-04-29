@@ -54,6 +54,18 @@ body {
   color: #333;
   padding: 4px;
   box-sizing: border-box;
+  cursor: pointer;
+  outline: none;
+}
+
+.frame-item:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2563eb;
+}
+
+.frame-item--selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #2563eb;
 }
 
 .frame-thumb-canvas {

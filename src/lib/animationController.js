@@ -37,6 +37,19 @@ export function createAnimationController({
     onApplyFrame(cloneGrid(frames[index]));
   }
 
+  function selectFrame(index) {
+    if (frames.length === 0) {
+      return false;
+    }
+    const clamped = Math.max(0, Math.min(index, frames.length - 1));
+    if (playbackTimerId !== null) {
+      stop();
+    }
+    currentFrameIndex = clamped;
+    applyFrame(currentFrameIndex);
+    return true;
+  }
+
   function togglePlayback() {
     if (playbackTimerId !== null) {
       stop();
@@ -82,6 +95,7 @@ export function createAnimationController({
   return {
     togglePlayback,
     addFrame,
+    selectFrame,
     reset,
     stop,
     getFrames,

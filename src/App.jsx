@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BrushColorControls from "./components/BrushColorControls";
 import DrawToolControls from "./components/DrawToolControls";
+import FrameTimeline from "./components/FrameTimeline";
 import { createAnimationController } from "./lib/animationController";
 import { createCanvasInputController } from "./lib/canvasInputController";
 import { createCanvasRenderer } from "./lib/canvasRenderer";
@@ -8,32 +9,9 @@ import { cloneGrid, createGrid, setPixel } from "./lib/gridModel";
 
 const CANVAS_BASE_COLOR = "#ffffff";
 const MAX_CANVAS_SIZE = 512;
-const FRAME_THUMBNAIL_SIZE = 52;
 
 function brushRgbToCss({ r, g, b }) {
   return `rgb(${r}, ${g}, ${b})`;
-}
-
-function drawFrameThumbnail(thumbnailCanvas, frame) {
-  const thumbnailContext = thumbnailCanvas.getContext("2d");
-  if (!thumbnailContext || !Array.isArray(frame) || frame.length === 0) {
-    return;
-  }
-
-  const frameSize = frame.length;
-  const pixelSize = Math.max(1, Math.floor(FRAME_THUMBNAIL_SIZE / frameSize));
-  const renderedSize = pixelSize * frameSize;
-  const offset = Math.floor((FRAME_THUMBNAIL_SIZE - renderedSize) / 2);
-
-  thumbnailContext.fillStyle = CANVAS_BASE_COLOR;
-  thumbnailContext.fillRect(0, 0, FRAME_THUMBNAIL_SIZE, FRAME_THUMBNAIL_SIZE);
-
-  for (let x = 0; x < frameSize; x++) {
-    for (let y = 0; y < frameSize; y++) {
-      thumbnailContext.fillStyle = frame[x][y];
-      thumbnailContext.fillRect(offset + x * pixelSize, offset + y * pixelSize, pixelSize, pixelSize);
-    }
-  }
 }
 
 export default function App() {
@@ -42,6 +20,7 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [frameCount, setFrameCount] = useState(0);
   const [frames, setFrames] = useState([]);
+  const [selectedFrameIndex, setSelectedFrameIndex] = useState(null);
   const [drawMode, setDrawMode] = useState("draw");
   const [brushRgb, setBrushRgb] = useState({ r: 0, g: 0, b: 0 });
 
@@ -124,6 +103,16 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (frames.length === 0) {
+      setSelectedFrameIndex(null);
+      return;
+    }
+    setSelectedFrameIndex((prev) =>
+      prev !== null && prev >= frames.length ? null : prev,
+    );
+  }, [frames.length]);
+
   const isDrawMode = drawMode === "draw";
   const isEraseMode = drawMode === "erase";
 
@@ -170,6 +159,7 @@ export default function App() {
     setGrid(freshGrid);
     rendererRef.current?.redraw(freshGrid);
     animationControllerRef.current?.reset();
+    setSelectedFrameIndex(null);
   }
 
   function handleAddFrame() {
@@ -184,6 +174,17 @@ export default function App() {
     animationControllerRef.current?.togglePlayback();
   }
 
+  const handleSelectFrame = useCallback((index) => {
+    if (index === null) {
+      setSelectedFrameIndex(null);
+      return;
+    }
+    const ok = animationControllerRef.current?.selectFrame(index);
+    if (ok) {
+      setSelectedFrameIndex(index);
+    }
+  }, []);
+
   function handleSelectDrawBrush() {
     setDrawMode("draw");
   }
@@ -194,25 +195,12 @@ export default function App() {
 
   return (
     <div className="page">
-      <div className="animation-frame-container">
-        <div className="frame-timeline">
-          {frames.map((frame, index) => (
-            <div key={index} className="frame-item">
-              <canvas
-                className="frame-thumb-canvas"
-                width={FRAME_THUMBNAIL_SIZE}
-                height={FRAME_THUMBNAIL_SIZE}
-                ref={(node) => {
-                  if (node) {
-                    drawFrameThumbnail(node, frame);
-                  }
-                }}
-              />
-              <span className="frame-label">Frame {index + 1}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <FrameTimeline
+        frames={frames}
+        selectedFrameIndex={selectedFrameIndex}
+        canvasBaseColor={CANVAS_BASE_COLOR}
+        onSelectFrame={handleSelectFrame}
+      />
 
       <div className="app-layout">
         <div className="sidebar">
