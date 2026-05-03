@@ -1,6 +1,8 @@
+import { useState } from "react";
 import BrushColorControls from "./components/BrushColorControls";
 import DrawToolControls from "./components/DrawToolControls";
 import FrameTimeline from "./components/FrameTimeline";
+import SetSizeDialog from "./components/SetSizeDialog";
 import { useAnimationController } from "./hooks/useAnimationController";
 import { useDrawTool } from "./hooks/useDrawTool";
 import { usePixelCanvas } from "./hooks/usePixelCanvas";
@@ -21,6 +23,7 @@ export default function App() {
 
   const {
     canvasRef,
+    size,
     clear,
     resizeGrid,
     applyFrame,
@@ -33,13 +36,9 @@ export default function App() {
   });
 
   const animation = useAnimationController({ applyFrame });
+  const [isSetSizeOpen, setIsSetSizeOpen] = useState(false);
 
-  function handleSetSize() {
-    const input = window.prompt("Enter the size of the grid (1-100):");
-    const newSize = Number.parseInt(input ?? "", 10);
-    if (newSize < 1 || newSize > 100) {
-      return;
-    }
+  function handleSetSizeConfirm(newSize) {
     resizeGrid(newSize);
     animation.reset();
   }
@@ -68,7 +67,9 @@ export default function App() {
             onErase={toggleErase}
           />
           <button type="button" onClick={clear}>Clear</button>
-          <button type="button" onClick={handleSetSize}>Set Size</button>
+          <button type="button" onClick={() => setIsSetSizeOpen(true)}>
+            Set Size
+          </button>
         </div>
 
         <canvas id="canvas" ref={canvasRef} />
@@ -78,6 +79,13 @@ export default function App() {
           <button type="button" onClick={handleAddFrame}>Add Frame ({animation.frameCount})</button>
         </div>
       </div>
+
+      <SetSizeDialog
+        open={isSetSizeOpen}
+        initialSize={size}
+        onClose={() => setIsSetSizeOpen(false)}
+        onConfirm={handleSetSizeConfirm}
+      />
     </div>
   );
 }
